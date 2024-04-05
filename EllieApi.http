@@ -1,4 +1,4 @@
-@EllieApi_HostAddress = http://localhost:5219
+@EllieApi_HostAddress = http://localhost:5084
 
 GET {{EllieApi_HostAddress}}/weatherforecast/
 Accept: application/json
