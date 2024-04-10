@@ -1,4 +1,4 @@
-﻿using EllieApi.Model;
+﻿using EllieApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace EllieApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class EmployeeController : Controller
+    public class EmployeeController : GenericController
     {
         private readonly ElliedbContext _context;
 
@@ -47,42 +47,50 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("ActivatingTime,ImageUrl,Description")] Employee Employee)
+        public async Task<IActionResult> Create(Employee Employee)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(Employee);
                 await _context.SaveChangesAsync();
             }
-            return CreatedAtAction("User", Employee);
+            return StatusCode(201, Employee);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit(int id, Employee Employee)
+        public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
-            if (id != Employee.Id)
+            Employee Employee = await _context.Employees.FindAsync(id);
+
+            if (Employee == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            foreach (var update in updates)
             {
-                try
+                var field = Employee.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
+                if (field != null && field.CanWrite)
                 {
-                    _context.Update(Employee);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!EmployeeExists(Employee.Id))
+                    if (update.Value == null)
                     {
-                        return NotFound();
+                        field.SetValue(Employee, null);
                     }
                     else
                     {
-                        throw;
+                        field.SetValue(Employee, ChangeType(update.Value.ToString(), field.PropertyType));
                     }
                 }
+            }
+
+            _context.Entry(Employee).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
             }
             return Ok(Employee);
         }
@@ -99,11 +107,6 @@ namespace EllieApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(id);
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            return _context.Employees.Any(e => e.Id == id);
         }
     }
 }

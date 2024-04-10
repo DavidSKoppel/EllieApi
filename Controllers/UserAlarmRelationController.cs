@@ -1,4 +1,4 @@
-﻿using EllieApi.Model;
+﻿using EllieApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace EllieApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class UserAlarmRelationController : Controller
+    public class UserAlarmRelationController : GenericController
     {
         private readonly ElliedbContext _context;
 
@@ -47,42 +47,50 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("ActivatingTime,ImageUrl,Description")] UserAlarmRelation UserAlarmRelation)
+        public async Task<IActionResult> Create(UserAlarmRelation UserAlarmRelation)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(UserAlarmRelation);
                 await _context.SaveChangesAsync();
             }
-            return CreatedAtAction("User", UserAlarmRelation);
+            return StatusCode(201, UserAlarmRelation);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit(int id, UserAlarmRelation UserAlarmRelation)
+        public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
-            if (id != UserAlarmRelation.Id)
+            UserAlarmRelation UserAlarmRelation = await _context.UserAlarmRelations.FindAsync(id);
+
+            if (UserAlarmRelation == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            foreach (var update in updates)
             {
-                try
+                var field = UserAlarmRelation.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
+                if (field != null && field.CanWrite)
                 {
-                    _context.Update(UserAlarmRelation);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserAlarmRelationExists(UserAlarmRelation.Id))
+                    if (update.Value == null)
                     {
-                        return NotFound();
+                        field.SetValue(UserAlarmRelation, null);
                     }
                     else
                     {
-                        throw;
+                        field.SetValue(UserAlarmRelation, ChangeType(update.Value.ToString(), field.PropertyType));
                     }
                 }
+            }
+
+            _context.Entry(UserAlarmRelation).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
             }
             return Ok(UserAlarmRelation);
         }
@@ -99,11 +107,6 @@ namespace EllieApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(id);
-        }
-
-        private bool UserAlarmRelationExists(int id)
-        {
-            return _context.UserAlarmRelations.Any(e => e.Id == id);
         }
     }
 }

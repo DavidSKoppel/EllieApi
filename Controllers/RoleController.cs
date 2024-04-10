@@ -11,24 +11,24 @@ namespace EllieApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AlarmController : GenericController
+    public class RoleController : GenericController
     {
         private readonly ElliedbContext _context;
 
-        public AlarmController(ElliedbContext context)
+        public RoleController(ElliedbContext context)
         {
             _context = context;
         }
 
-        // GET: Alarm
+        // GET: Role
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Alarms.ToListAsync());
+            return Ok(await _context.Roles.ToListAsync());
         }
 
         [HttpGet("id")]
-        // GET: Alarm/Details/5
+        // GET: Role/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -36,54 +36,54 @@ namespace EllieApi.Controllers
                 return NotFound();
             }
 
-            var Alarm = await _context.Alarms
+            var Role = await _context.Roles
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (Alarm == null)
+            if (Role == null)
             {
                 return NotFound();
             }
 
-            return Ok(Alarm);
+            return Ok(Role);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Alarm alarm)
+        public async Task<IActionResult> Create(Role Role)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(alarm);
+                _context.Add(Role);
                 await _context.SaveChangesAsync();
             }
-            return StatusCode(201, alarm);
+            return StatusCode(201, Role);
         }
 
         [HttpPut]
         public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
-            Alarm alarm = await _context.Alarms.FindAsync(id);
+            Role Role = await _context.Roles.FindAsync(id);
 
-            if (alarm == null)
+            if (Role == null)
             {
                 return NotFound();
             }
 
             foreach (var update in updates)
             {
-                var field = alarm.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
+                var field = Role.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
                 if (field != null && field.CanWrite)
                 {
-                    if(update.Value == null)
+                    if (update.Value == null)
                     {
-                        field.SetValue(alarm, null);
+                        field.SetValue(Role, null);
                     }
                     else
                     {
-                        field.SetValue(alarm, ChangeType(update.Value.ToString(), field.PropertyType));
+                        field.SetValue(Role, ChangeType(update.Value.ToString(), field.PropertyType));
                     }
                 }
             }
 
-            _context.Entry(alarm).State = EntityState.Modified;
+            _context.Entry(Role).State = EntityState.Modified;
             try
             {
                 await _context.SaveChangesAsync();
@@ -92,17 +92,17 @@ namespace EllieApi.Controllers
             {
                 return NotFound();
             }
-            return Ok(alarm);
+            return Ok(Role);
         }
 
-        // POST: Alarm/Delete/5
+        // POST: Role/Delete/5
         [HttpDelete]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var Alarm = await _context.Alarms.FindAsync(id);
-            if (Alarm != null)
+            var Role = await _context.Roles.FindAsync(id);
+            if (Role != null)
             {
-                _context.Alarms.Remove(Alarm);
+                _context.Roles.Remove(Role);
             }
 
             await _context.SaveChangesAsync();

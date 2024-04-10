@@ -1,4 +1,4 @@
-﻿using EllieApi.Model;
+﻿using EllieApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace EllieApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class InstituteController : Controller
+    public class InstituteController : GenericController
     {
         private readonly ElliedbContext _context;
 
@@ -47,42 +47,50 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("ActivatingTime,ImageUrl,Description")] Institute Institute)
+        public async Task<IActionResult> Create(Institute Institute)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(Institute);
                 await _context.SaveChangesAsync();
             }
-            return CreatedAtAction("User", Institute);
+            return StatusCode(201, Institute);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit(int id, Institute Institute)
+        public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
-            if (id != Institute.Id)
+            Institute Institute = await _context.Institutes.FindAsync(id);
+
+            if (Institute == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            foreach (var update in updates)
             {
-                try
+                var field = Institute.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
+                if (field != null && field.CanWrite)
                 {
-                    _context.Update(Institute);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!InstituteExists(Institute.Id))
+                    if (update.Value == null)
                     {
-                        return NotFound();
+                        field.SetValue(Institute, null);
                     }
                     else
                     {
-                        throw;
+                        field.SetValue(Institute, ChangeType(update.Value.ToString(), field.PropertyType));
                     }
                 }
+            }
+
+            _context.Entry(Institute).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
             }
             return Ok(Institute);
         }
@@ -99,11 +107,6 @@ namespace EllieApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(id);
-        }
-
-        private bool InstituteExists(int id)
-        {
-            return _context.Institutes.Any(e => e.Id == id);
         }
     }
 }

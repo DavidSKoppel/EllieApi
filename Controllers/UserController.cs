@@ -1,4 +1,4 @@
-﻿using EllieApi.Model;
+﻿using EllieApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace EllieApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class UserController : Controller
+    public class UserController : GenericController
     {
         private readonly ElliedbContext _context;
 
@@ -47,42 +47,50 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("ActivatingTime,ImageUrl,Description")] User User)
+        public async Task<IActionResult> Create(User User)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(User);
                 await _context.SaveChangesAsync();
             }
-            return CreatedAtAction("User", User);
+            return StatusCode(201, User);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit(int id, User User)
+        public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
-            if (id != User.Id)
+            User User = await _context.Users.FindAsync(id);
+
+            if (User == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            foreach (var update in updates)
             {
-                try
+                var field = User.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
+                if (field != null && field.CanWrite)
                 {
-                    _context.Update(User);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(User.Id))
+                    if (update.Value == null)
                     {
-                        return NotFound();
+                        field.SetValue(User, null);
                     }
                     else
                     {
-                        throw;
+                        field.SetValue(User, ChangeType(update.Value.ToString(), field.PropertyType));
                     }
                 }
+            }
+
+            _context.Entry(User).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
             }
             return Ok(User);
         }
@@ -99,11 +107,6 @@ namespace EllieApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(id);
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.Id == id);
         }
     }
 }

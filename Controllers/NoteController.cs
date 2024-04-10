@@ -1,4 +1,4 @@
-﻿using EllieApi.Model;
+﻿using EllieApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace EllieApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class NoteController : Controller
+    public class NoteController : GenericController
     {
         private readonly ElliedbContext _context;
 
@@ -47,42 +47,50 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("ActivatingTime,ImageUrl,Description")] Note Note)
+        public async Task<IActionResult> Create(Note Note)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(Note);
                 await _context.SaveChangesAsync();
             }
-            return CreatedAtAction("User", Note);
+            return StatusCode(201, Note);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit(int id, Note Note)
+        public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
-            if (id != Note.Id)
+            Note Note = await _context.Notes.FindAsync(id);
+
+            if (Note == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            foreach (var update in updates)
             {
-                try
+                var field = Note.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
+                if (field != null && field.CanWrite)
                 {
-                    _context.Update(Note);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!NoteExists(Note.Id))
+                    if (update.Value == null)
                     {
-                        return NotFound();
+                        field.SetValue(Note, null);
                     }
                     else
                     {
-                        throw;
+                        field.SetValue(Note, ChangeType(update.Value.ToString(), field.PropertyType));
                     }
                 }
+            }
+
+            _context.Entry(Note).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
             }
             return Ok(Note);
         }
@@ -99,11 +107,6 @@ namespace EllieApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(id);
-        }
-
-        private bool NoteExists(int id)
-        {
-            return _context.Notes.Any(e => e.Id == id);
         }
     }
 }

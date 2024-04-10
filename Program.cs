@@ -1,4 +1,4 @@
-using EllieApi.Model;
+using EllieApi.Models;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 

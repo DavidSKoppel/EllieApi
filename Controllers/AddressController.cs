@@ -1,4 +1,4 @@
-﻿using EllieApi.Model;
+﻿using EllieApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace EllieApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AddressController : Controller
+    public class AddressController : GenericController
     {
         private readonly ElliedbContext _context;
 
@@ -26,6 +26,7 @@ namespace EllieApi.Controllers
         {
             return Ok(await _context.Addresses.ToListAsync());
         }
+
         [HttpGet("id")]
         // GET: Address/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -46,44 +47,50 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("ActivatingTime,ImageUrl,Description")] Address Address)
+        public async Task<IActionResult> Create(Address Address)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(Address);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
             }
-            return CreatedAtAction("User", Address);
+            return StatusCode(201, Address);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit(int id, Address Address)
+        public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
-            if (id != Address.Id)
+            Address Address = await _context.Addresses.FindAsync(id);
+
+            if (Address == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            foreach (var update in updates)
             {
-                try
+                var field = Address.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
+                if (field != null && field.CanWrite)
                 {
-                    _context.Update(Address);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AddressExists(Address.Id))
+                    if (update.Value == null)
                     {
-                        return NotFound();
+                        field.SetValue(Address, null);
                     }
                     else
                     {
-                        throw;
+                        field.SetValue(Address, ChangeType(update.Value.ToString(), field.PropertyType));
                     }
                 }
-                return RedirectToAction(nameof(Index));
+            }
+
+            _context.Entry(Address).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
             }
             return Ok(Address);
         }
@@ -100,11 +107,6 @@ namespace EllieApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(id);
-        }
-
-        private bool AddressExists(int id)
-        {
-            return _context.Addresses.Any(e => e.Id == id);
         }
     }
 }
