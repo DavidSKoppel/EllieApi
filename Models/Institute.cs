@@ -12,13 +12,15 @@ public partial class Institute
 
     public int AddressId { get; set; }
 
-    //public DateTime CreatedAt { get; set; }
-
-    //public DateTime? LastEdited { get; set; }
     [JsonIgnore]
+    public DateTime? CreatedAt { get; set; }
 
-    public virtual Address? Address { get; set; }
     [JsonIgnore]
+    public DateTime? LastEdited { get; set; }
 
-    public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
+    [JsonIgnore]
+    public virtual Address? Address { get; set; } = null!;
+
+    [JsonIgnore]
+    public virtual ICollection<Employee>? Employees { get; set; } = new List<Employee>();
 }

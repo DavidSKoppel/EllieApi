@@ -18,20 +18,22 @@ public partial class Employee
 
     public byte[] PasswordSalt { get; set; } = null!;
 
-    public int RoleId { get; set; }
-
     public int InstituteId { get; set; }
 
-    //public DateTime CreatedAt { get; set; }
+    public int RoleId { get; set; }
 
-    //public DateTime? LastEdited { get; set; }
     [JsonIgnore]
+    public DateTime? CreatedAt { get; set; }
 
+    [JsonIgnore]
+    public DateTime? LastEdited { get; set; }
+
+    [JsonIgnore]
     public virtual Institute? Institute { get; set; } = null!;
-    [JsonIgnore]
 
+    [JsonIgnore]
     public virtual Role? Role { get; set; } = null!;
-    [JsonIgnore]
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    [JsonIgnore]
+    public virtual ICollection<User>? Users { get; set; } = new List<User>();
 }

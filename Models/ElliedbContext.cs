@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace EllieApi.Models;
 
@@ -39,54 +41,59 @@ public partial class ElliedbContext : DbContext
     {
         modelBuilder.Entity<Address>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Addresse__3214EC07F6DC7ACB");
+            entity.HasKey(e => e.Id).HasName("PK__Addresse__3214EC077D44F74E");
 
-            /*entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");*/
-            /*entity.Property(e => e.LastEdited).HasColumnType("datetime");*/
+                .HasColumnType("datetime");
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(20);
         });
 
         modelBuilder.Entity<Alarm>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Alarms__3214EC07A7ADA24F");
+            entity.HasKey(e => e.Id).HasName("PK__Alarms__3214EC0760808E56");
 
             entity.Property(e => e.ActivatingTime).HasColumnType("datetime");
             entity.Property(e => e.AlarmTypeId).HasColumnName("AlarmType_id");
-            /*entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");*/
+                .HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.ImageUrl).HasMaxLength(255);
-            /*entity.Property(e => e.LastEdited).HasColumnType("datetime");*/
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(10);
 
             entity.HasOne(d => d.AlarmType).WithMany(p => p.Alarms)
                 .HasForeignKey(d => d.AlarmTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Alarms.AlarmType_id");
         });
 
         modelBuilder.Entity<AlarmType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AlarmTyp__3214EC0769F59121");
+            entity.HasKey(e => e.Id).HasName("PK__AlarmTyp__3214EC071E468A4B");
 
             entity.ToTable("AlarmType");
 
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
         modelBuilder.Entity<Employee>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07EFBAA1E3");
+            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC077083A692");
 
-            /*entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");*/
+                .HasColumnType("datetime");
             entity.Property(e => e.Email).HasMaxLength(20);
             entity.Property(e => e.FirstName).HasMaxLength(10);
             entity.Property(e => e.InstituteId).HasColumnName("Institute_id");
-            /*entity.Property(e => e.LastEdited).HasColumnType("datetime");*/
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.LastName).HasMaxLength(20);
             entity.Property(e => e.PasswordHash).HasMaxLength(500);
             entity.Property(e => e.PasswordSalt).HasMaxLength(500);
@@ -105,13 +112,13 @@ public partial class ElliedbContext : DbContext
 
         modelBuilder.Entity<Institute>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Institut__3214EC072EA18934");
+            entity.HasKey(e => e.Id).HasName("PK__Institut__3214EC074B4B10FA");
 
             entity.Property(e => e.AddressId).HasColumnName("Address_id");
-            /*entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");*/
-            /*entity.Property(e => e.LastEdited).HasColumnType("datetime");*/
+                .HasColumnType("datetime");
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(255);
 
             entity.HasOne(d => d.Address).WithMany(p => p.Institutes)
@@ -122,12 +129,12 @@ public partial class ElliedbContext : DbContext
 
         modelBuilder.Entity<Note>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Notes__3214EC07B0B0C79B");
+            entity.HasKey(e => e.Id).HasName("PK__Notes__3214EC076EB2DD32");
 
-            /*entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");*/
-            /*entity.Property(e => e.LastEdited).HasColumnType("datetime");*/
+                .HasColumnType("datetime");
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.Text)
                 .HasColumnType("text")
                 .HasColumnName("text");
@@ -141,24 +148,27 @@ public partial class ElliedbContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Role__3214EC076B6DEEAA");
+            entity.HasKey(e => e.Id).HasName("PK__Role__3214EC07E97E51B6");
 
             entity.ToTable("Role");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Users__3214EC07DEB9DE93");
+            entity.HasKey(e => e.Id).HasName("PK__Users__3214EC075498799F");
 
             entity.Property(e => e.ContactPersonId).HasColumnName("ContactPerson_id");
-            /*entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");*/
+                .HasColumnType("datetime");
             entity.Property(e => e.FirstName).HasMaxLength(10);
-            /*entity.Property(e => e.LastEdited).HasColumnType("datetime");*/
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.LastName).HasMaxLength(20);
             entity.Property(e => e.Points).HasDefaultValueSql("('0')");
             entity.Property(e => e.Room).HasMaxLength(10);
@@ -171,14 +181,13 @@ public partial class ElliedbContext : DbContext
 
         modelBuilder.Entity<UserAlarmRelation>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__UserAlar__3214EC0783CC76BB");
+            entity.HasKey(e => e.Id).HasName("PK__UserAlar__3214EC0754C0614E");
 
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.AlarmsId).HasColumnName("Alarms_id");
-            /*entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");*/
-            /*entity.Property(e => e.LastEdited).HasColumnType("datetime");*/
+                .HasColumnType("datetime");
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.UserId).HasColumnName("User_id");
 
             entity.HasOne(d => d.Alarms).WithMany(p => p.UserAlarmRelations)
@@ -186,10 +195,10 @@ public partial class ElliedbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserAlarmRelations.Alarms_id");
 
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.UserAlarmRelation)
-                .HasForeignKey<UserAlarmRelation>(d => d.Id)
+            entity.HasOne(d => d.User).WithMany(p => p.UserAlarmRelations)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UserAlarmRelations.Id");
+                .HasConstraintName("FK_UserAlarmRelations.User_id");
         });
 
         OnModelCreatingPartial(modelBuilder);

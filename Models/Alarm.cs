@@ -16,15 +16,16 @@ public partial class Alarm
 
     public string? Description { get; set; }
 
-    public int? AlarmTypeId { get; set; }
-
-    //public DateTime CreatedAt { get; set; }
-
-    //public DateTime? LastEdited { get; set; }
+    public int AlarmTypeId { get; set; }
     [JsonIgnore]
+    public DateTime? CreatedAt { get; set; }
 
-    public virtual AlarmType? AlarmType { get; set; }
     [JsonIgnore]
+    public DateTime? LastEdited { get; set; }
 
-    public virtual ICollection<UserAlarmRelation> UserAlarmRelations { get; set; } = new List<UserAlarmRelation>();
+    [JsonIgnore]
+    public virtual AlarmType? AlarmType { get; set; } = null!;
+
+    [JsonIgnore]
+    public virtual ICollection<UserAlarmRelation>? UserAlarmRelations { get; set; } = new List<UserAlarmRelation>();
 }

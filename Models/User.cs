@@ -20,16 +20,18 @@ public partial class User
 
     public int ContactPersonId { get; set; }
 
-    //public DateTime CreatedAt { get; set; }
-
-    //public DateTime? LastEdited { get; set; }
     [JsonIgnore]
+    public DateTime? CreatedAt { get; set; }
 
+    [JsonIgnore]
+    public DateTime? LastEdited { get; set; }
+
+    [JsonIgnore]
     public virtual Employee? ContactPerson { get; set; } = null!;
-    [JsonIgnore]
 
-    public virtual ICollection<Note> Notes { get; set; } = new List<Note>();
     [JsonIgnore]
+    public virtual ICollection<Note>? Notes { get; set; } = new List<Note>();
 
-    public virtual UserAlarmRelation? UserAlarmRelation { get; set; }
+    [JsonIgnore]
+    public virtual ICollection<UserAlarmRelation>? UserAlarmRelations { get; set; } = new List<UserAlarmRelation>();
 }

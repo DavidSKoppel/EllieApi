@@ -16,9 +16,11 @@ public partial class Address
 
     public int HouseNumber { get; set; }
 
-    //public DateTime CreatedAt { get; set; }
-
-    //public DateTime? LastEdited { get; set; }
     [JsonIgnore]
-    public virtual ICollection<Institute> Institutes { get; set; } = new List<Institute>();
+    public DateTime? CreatedAt { get; set; }
+
+    [JsonIgnore]
+    public DateTime? LastEdited { get; set; }
+    [JsonIgnore]
+    public virtual ICollection<Institute>? Institutes { get; set; } = new List<Institute>();
 }

@@ -12,10 +12,12 @@ public partial class Note
 
     public int UserId { get; set; }
 
-    //public DateTime CreatedAt { get; set; }
-
-    //public DateTime? LastEdited { get; set; }
     [JsonIgnore]
+    public DateTime? CreatedAt { get; set; }
 
+    [JsonIgnore]
+    public DateTime? LastEdited { get; set; }
+
+    [JsonIgnore]
     public virtual User? User { get; set; } = null!;
 }

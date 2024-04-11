@@ -8,8 +8,14 @@ public partial class AlarmType
 {
     public int Id { get; set; }
 
-    public string? Name { get; set; }
-    [JsonIgnore]
+    public string Name { get; set; } = null!;
 
-    public virtual ICollection<Alarm> Alarms { get; set; } = new List<Alarm>();
+    [JsonIgnore]
+    public DateTime? CreatedAt { get; set; }
+
+    [JsonIgnore]
+    public DateTime? LastEdited { get; set; }
+
+    [JsonIgnore]
+    public virtual ICollection<Alarm>? Alarms { get; set; } = new List<Alarm>();
 }

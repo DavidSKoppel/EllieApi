@@ -12,13 +12,14 @@ public partial class UserAlarmRelation
 
     public int AlarmsId { get; set; }
 
-    //public DateTime CreatedAt { get; set; }
-
-    //public DateTime? LastEdited { get; set; }
     [JsonIgnore]
+    public DateTime? CreatedAt { get; set; }
+
+    [JsonIgnore]
+    public DateTime? LastEdited { get; set; }
 
     public virtual Alarm? Alarms { get; set; } = null!;
-    [JsonIgnore]
 
-    public virtual User? IdNavigation { get; set; } = null!;
+    [JsonIgnore]
+    public virtual User? User { get; set; } = null!;
 }
