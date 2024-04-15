@@ -1,10 +1,12 @@
-﻿using EllieApi.Models;
+﻿using EllieApi.Dto;
+using EllieApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace EllieApi.Controllers
@@ -47,16 +49,30 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Employee Employee)
+        public async Task<IActionResult> Create(EmployeeDto employeeDto)
         {
+            Employee employee = new Employee();
             if (ModelState.IsValid)
             {
-                _context.Add(Employee);
+                CreatePasswordHash(employeeDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
+
+                // Create a new Employee object and copy data from EmployeeDto
+                employee = new Employee
+                {
+                    FirstName = employeeDto.FirstName,
+                    LastName = employeeDto.LastName,
+                    Email = employeeDto.Email,
+                    InstituteId = employeeDto.InstituteId,
+                    RoleId = employeeDto.RoleId,
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt
+                };
+                _context.Add(employee);
                 await _context.SaveChangesAsync();
             }
-            return StatusCode(201, Employee);
+            return StatusCode(201, employee);
         }
-
+        
         [HttpPut]
         public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
@@ -107,6 +123,15 @@ namespace EllieApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(id);
+        }
+
+        private void CreatePasswordHash(string password, out byte[] hash, out byte[] salt)
+        {
+            using (var hmac = new HMACSHA512())
+            {
+                salt = hmac.Key;
+                hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
         }
     }
 }
