@@ -20,10 +20,8 @@ public partial class User
 
     public int ContactPersonId { get; set; }
 
-    [JsonIgnore]
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    [JsonIgnore]
     public DateTime? LastEdited { get; set; }
 
     [JsonIgnore]

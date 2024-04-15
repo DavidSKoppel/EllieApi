@@ -18,6 +18,7 @@ public partial class UserAlarmRelation
     [JsonIgnore]
     public DateTime? LastEdited { get; set; }
 
+    [JsonIgnore]
     public virtual Alarm? Alarms { get; set; } = null!;
 
     [JsonIgnore]

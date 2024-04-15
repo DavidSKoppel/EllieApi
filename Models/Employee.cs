@@ -14,9 +14,9 @@ public partial class Employee
 
     public string Email { get; set; } = null!;
 
-    public byte[] PasswordHash { get; set; } = null!;
+    public byte[]? PasswordHash { get; set; }
 
-    public byte[] PasswordSalt { get; set; } = null!;
+    public byte[]? PasswordSalt { get; set; }
 
     public int InstituteId { get; set; }
 
@@ -27,6 +27,8 @@ public partial class Employee
 
     [JsonIgnore]
     public DateTime? LastEdited { get; set; }
+
+    public bool Active { get; set; }
 
     [JsonIgnore]
     public virtual Institute? Institute { get; set; } = null!;

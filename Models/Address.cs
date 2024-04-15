@@ -21,6 +21,7 @@ public partial class Address
 
     [JsonIgnore]
     public DateTime? LastEdited { get; set; }
+
     [JsonIgnore]
     public virtual ICollection<Institute>? Institutes { get; set; } = new List<Institute>();
 }
