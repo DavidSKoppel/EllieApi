@@ -3,9 +3,13 @@ using EllieApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -16,10 +20,12 @@ namespace EllieApi.Controllers
     public class EmployeeController : GenericController
     {
         private readonly ElliedbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public EmployeeController(ElliedbContext context)
+        public EmployeeController(ElliedbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         // GET: Employee
@@ -72,7 +78,7 @@ namespace EllieApi.Controllers
             }
             return StatusCode(201, employee);
         }
-        
+
         [HttpPut]
         public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
@@ -132,6 +138,89 @@ namespace EllieApi.Controllers
                 salt = hmac.Key;
                 hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
+        }
+
+        private bool VerifyPasswordHash(string password, byte[] hash, byte[] salt)
+        {
+            using (var hmac = new HMACSHA512(salt))
+            {
+                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                return computedHash.SequenceEqual(hash);
+            }
+        }
+
+        private string CreateToken(string email, string userType)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, email),
+                new Claim(ClaimTypes.Role, userType)
+            };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: cred);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+        }
+
+        [HttpPost("UserLogin")]
+        public async Task<IActionResult> LoginUser(LoginUserDto user)
+        {
+            bool loginSuccess;
+            try
+            {
+                //loginSuccess = await _context.Employees.CheckIfUserExistByEmail(user.email, user.password);
+
+                Employee userF = _context.Employees.Where(e => e.Email == user.email).FirstOrDefault();
+                if (userF != null)
+                {
+                    bool verified = VerifyPasswordHash(userF.Email, userF.PasswordHash, userF.PasswordSalt);
+                    if (verified)
+                    {
+                        loginSuccess = true;
+                    }
+                }
+                loginSuccess = false;
+            }
+            catch (Exception e)
+            {
+                return StatusCode(404, "Username or password is wrong");
+            }
+            if (loginSuccess)
+            {
+                Employee userByEmail;
+                try
+                {
+                    userByEmail = await _context.Employees.Where(c => c.Email == user.email)
+                    .FirstOrDefaultAsync();
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e);
+                }
+                if (userByEmail.Active == true)
+                {
+                    LoginSuccessUserDto login = new LoginSuccessUserDto();
+                    login.id = userByEmail.Id;
+                    login.email = userByEmail.Email;
+                    login.userType1 = userByEmail.Role.Name;
+                    string token = CreateToken(user.email, userByEmail.Role.Name);
+                    var obj = new { login, token };
+                    return Ok(obj);
+                }
+                else
+                {
+                    return StatusCode(423, "User inactive");
+                }
+            }
+            return StatusCode(418, "is Bed");
         }
     }
 }
