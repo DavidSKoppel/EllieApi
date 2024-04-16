@@ -29,6 +29,8 @@ public partial class ElliedbContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
+    public virtual DbSet<Room> Rooms { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserAlarmRelation> UserAlarmRelations { get; set; }
@@ -159,6 +161,30 @@ public partial class ElliedbContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
+        modelBuilder.Entity<Room>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Room__3214EC0754754A15");
+
+            entity.ToTable("Room");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.InstituteId).HasColumnName("Institute_id");
+            entity.Property(e => e.LastEdited).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(255);
+            entity.Property(e => e.UserId).HasColumnName("User_id");
+
+            entity.HasOne(d => d.Institute).WithMany(p => p.Rooms)
+                .HasForeignKey(d => d.InstituteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Room.Institute_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Rooms)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_Room.User_id");
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Users__3214EC075498799F");
@@ -171,7 +197,6 @@ public partial class ElliedbContext : DbContext
             entity.Property(e => e.LastEdited).HasColumnType("datetime");
             entity.Property(e => e.LastName).HasMaxLength(20);
             entity.Property(e => e.Points).HasDefaultValueSql("('0')");
-            entity.Property(e => e.Room).HasMaxLength(10);
 
             entity.HasOne(d => d.ContactPerson).WithMany(p => p.Users)
                 .HasForeignKey(d => d.ContactPersonId)

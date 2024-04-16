@@ -17,18 +17,18 @@ public partial class Alarm
     public string? Description { get; set; }
 
     public int AlarmTypeId { get; set; }
-
     [JsonIgnore]
+
     public DateTime? CreatedAt { get; set; }
-
     [JsonIgnore]
+
     public DateTime? LastEdited { get; set; }
 
     public bool Active { get; set; }
-
     [JsonIgnore]
+
     public virtual AlarmType? AlarmType { get; set; } = null!;
-
     [JsonIgnore]
+
     public virtual ICollection<UserAlarmRelation>? UserAlarmRelations { get; set; } = new List<UserAlarmRelation>();
 }

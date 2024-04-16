@@ -11,13 +11,13 @@ public partial class Note
     public string Text { get; set; } = null!;
 
     public int UserId { get; set; }
-
     [JsonIgnore]
+
     public DateTime? CreatedAt { get; set; }
-
     [JsonIgnore]
+
     public DateTime? LastEdited { get; set; }
-
     [JsonIgnore]
+
     public virtual User? User { get; set; } = null!;
 }

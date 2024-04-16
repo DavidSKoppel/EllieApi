@@ -21,21 +21,21 @@ public partial class Employee
     public int InstituteId { get; set; }
 
     public int RoleId { get; set; }
-
     [JsonIgnore]
+
     public DateTime? CreatedAt { get; set; }
-
     [JsonIgnore]
+
     public DateTime? LastEdited { get; set; }
 
     public bool Active { get; set; }
-
     [JsonIgnore]
+
     public virtual Institute? Institute { get; set; } = null!;
-
     [JsonIgnore]
+
     public virtual Role? Role { get; set; } = null!;
-
     [JsonIgnore]
+
     public virtual ICollection<User>? Users { get; set; } = new List<User>();
 }

@@ -15,13 +15,12 @@ public partial class Address
     public int Floor { get; set; }
 
     public int HouseNumber { get; set; }
-
     [JsonIgnore]
+
     public DateTime? CreatedAt { get; set; }
-
     [JsonIgnore]
-    public DateTime? LastEdited { get; set; }
 
+    public DateTime? LastEdited { get; set; }
     [JsonIgnore]
     public virtual ICollection<Institute>? Institutes { get; set; } = new List<Institute>();
 }
