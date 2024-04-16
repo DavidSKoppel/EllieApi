@@ -25,7 +25,7 @@ namespace EllieApi.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Alarms.ToListAsync());
+            return Ok(await _context.Alarms.Where(e => e.Active == true).ToListAsync());
         }
 
         [HttpGet("id")]

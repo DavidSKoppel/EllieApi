@@ -30,10 +30,10 @@ namespace EllieApi.Controllers
         }
 
         // GET: Employee
-        [HttpGet]
+        [HttpGet, Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Employees.ToListAsync());
+            return Ok(await _context.Employees.Include(b => b.Institute).Include(e => e.Institute.Address).ToListAsync());
         }
 
         [HttpGet("id")]
@@ -156,7 +156,7 @@ namespace EllieApi.Controllers
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, email),
-                new Claim(ClaimTypes.Role, "Internal")
+                new Claim(ClaimTypes.Role, userType)
             };
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
@@ -205,7 +205,6 @@ namespace EllieApi.Controllers
                 {
                     userByEmail = await _context.Employees.Where(c => c.Email == user.email)
                         .Include(b => b.Role)
-                        .Include(e => e.Role.Name)
                         .FirstOrDefaultAsync();
                 }
                 catch (Exception e)
@@ -217,8 +216,51 @@ namespace EllieApi.Controllers
                     LoginSuccessUserDto login = new LoginSuccessUserDto();
                     login.id = userByEmail.Id;
                     login.email = userByEmail.Email;
-                    login.userType1 = "Internal";
-                    string token = CreateToken(user.email, "Internal");
+                    login.userType1 = userByEmail.Role.Name;
+                    string token = CreateToken(user.email, userByEmail.Role.Name);
+                    var obj = new { login, token };
+                    return Ok(obj);
+                }
+                else
+                {
+                    return StatusCode(423, "User inactive");
+                }
+            }
+            return StatusCode(418, "is Bed");
+        }
+
+        [HttpPost("AppUserLogin")]
+        public async Task<IActionResult> LoginApp(LoginUserDto user)
+        {
+            bool loginSuccess;
+            try
+            {
+                loginSuccess = await CheckIfUserExistByEmail(user.email, user.password);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(404, "Username or password is wrong");
+            }
+            if (loginSuccess)
+            {
+                Employee userByEmail;
+                try
+                {
+                    userByEmail = await _context.Employees.Where(c => c.Email == user.email)
+                        .Include(b => b.Role)
+                        .FirstOrDefaultAsync();
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e);
+                }
+                if (userByEmail.Active == true)
+                {
+                    LoginSuccessUserDto login = new LoginSuccessUserDto();
+                    login.id = userByEmail.Id;
+                    login.email = userByEmail.Email;
+                    login.userType1 = userByEmail.Role.Name;
+                    string token = CreateToken(user.email, userByEmail.Role.Name);
                     var obj = new { login, token };
                     return Ok(obj);
                 }

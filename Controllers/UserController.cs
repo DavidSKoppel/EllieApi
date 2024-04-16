@@ -22,7 +22,7 @@ namespace EllieApi.Controllers
         }
 
         // GET: User
-        [HttpGet, Authorize(Roles = "Internal")]
+        [HttpGet, Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Index()
         {
             return Ok(await _context.Users.ToListAsync());

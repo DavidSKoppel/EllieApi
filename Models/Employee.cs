@@ -29,7 +29,7 @@ public partial class Employee
     public DateTime? LastEdited { get; set; }
 
     public bool Active { get; set; }
-    [JsonIgnore]
+    
 
     public virtual Institute? Institute { get; set; } = null!;
     [JsonIgnore]
