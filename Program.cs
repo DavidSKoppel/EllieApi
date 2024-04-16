@@ -20,7 +20,8 @@ builder.Services.AddCors(options =>
 
 // Add services to the container.
 builder.Services.AddSwaggerGen(
-        options => {
+        options =>
+        {
             options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
             {
                 Description = "Standard Authorization header using the bearer scheme (\"bearer {token}\")",
@@ -33,7 +34,6 @@ builder.Services.AddSwaggerGen(
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ElliedbContext>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
