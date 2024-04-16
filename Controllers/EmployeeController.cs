@@ -229,45 +229,41 @@ namespace EllieApi.Controllers
             return StatusCode(418, "is Bed");
         }
 
+        private async Task<bool> CheckIfRoomExists(int roomId, int instituteId)
+        {
+            Room room = await _context.Rooms.Where(c => c.Id == roomId)
+                        .Include(b => b.Institute)
+                        .FirstOrDefaultAsync();
+
+            if (room != null)
+            {
+                if (room.Institute.Id == instituteId)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         [HttpPost("AppUserLogin")]
-        public async Task<IActionResult> LoginApp(LoginUserDto user)
+        public async Task<IActionResult> LoginApp(AppLoginDto user)
         {
             bool loginSuccess;
             try
             {
-                loginSuccess = await CheckIfUserExistByEmail(user.email, user.password);
+                loginSuccess = await CheckIfRoomExists(user.RoomId, user.InstituteId);
+                if (loginSuccess)
+                {
+                    AppLoginDto login = new AppLoginDto();
+                    login.RoomId = user.RoomId;
+                    login.InstituteId = user.InstituteId;
+                    var obj = new { login };
+                    return Ok(obj);
+                }
             }
             catch (Exception e)
             {
-                return StatusCode(404, "Username or password is wrong");
-            }
-            if (loginSuccess)
-            {
-                Employee userByEmail;
-                try
-                {
-                    userByEmail = await _context.Employees.Where(c => c.Email == user.email)
-                        .Include(b => b.Role)
-                        .FirstOrDefaultAsync();
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(e);
-                }
-                if (userByEmail.Active == true)
-                {
-                    LoginSuccessUserDto login = new LoginSuccessUserDto();
-                    login.id = userByEmail.Id;
-                    login.email = userByEmail.Email;
-                    login.userType1 = userByEmail.Role.Name;
-                    string token = CreateToken(user.email, userByEmail.Role.Name);
-                    var obj = new { login, token };
-                    return Ok(obj);
-                }
-                else
-                {
-                    return StatusCode(423, "User inactive");
-                }
+                return StatusCode(404, "RoomId or PasswordId is wrong");
             }
             return StatusCode(418, "is Bed");
         }
