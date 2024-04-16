@@ -1,4 +1,5 @@
 ﻿using EllieApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,7 @@ namespace EllieApi.Controllers
         }
 
         // GET: User
-        [HttpGet]
+        [HttpGet, Authorize(Roles = "Internal")]
         public async Task<IActionResult> Index()
         {
             return Ok(await _context.Users.ToListAsync());

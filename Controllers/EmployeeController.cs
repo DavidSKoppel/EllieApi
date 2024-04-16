@@ -1,5 +1,6 @@
 ﻿using EllieApi.Dto;
 using EllieApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +71,7 @@ namespace EllieApi.Controllers
                     Email = employeeDto.Email,
                     InstituteId = employeeDto.InstituteId,
                     RoleId = employeeDto.RoleId,
+                    Active = employeeDto.Active,
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt
                 };
@@ -154,7 +156,7 @@ namespace EllieApi.Controllers
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, email),
-                new Claim(ClaimTypes.Role, userType)
+                new Claim(ClaimTypes.Role, "Internal")
             };
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
@@ -162,12 +164,26 @@ namespace EllieApi.Controllers
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddDays(100),
                 signingCredentials: cred);
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
+        }
+
+        private async Task<bool> CheckIfUserExistByEmail(string email, string password)
+        {
+            Employee userF = _context.Employees.Where(e => e.Email == email).FirstOrDefault();
+            if (userF != null)
+            {
+                bool verified = VerifyPasswordHash(password, userF.PasswordHash, userF.PasswordSalt);
+                if (verified)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         [HttpPost("UserLogin")]
@@ -176,18 +192,7 @@ namespace EllieApi.Controllers
             bool loginSuccess;
             try
             {
-                //loginSuccess = await _context.Employees.CheckIfUserExistByEmail(user.email, user.password);
-
-                Employee userF = _context.Employees.Where(e => e.Email == user.email).FirstOrDefault();
-                if (userF != null)
-                {
-                    bool verified = VerifyPasswordHash(userF.Email, userF.PasswordHash, userF.PasswordSalt);
-                    if (verified)
-                    {
-                        loginSuccess = true;
-                    }
-                }
-                loginSuccess = false;
+                loginSuccess = await CheckIfUserExistByEmail(user.email, user.password);
             }
             catch (Exception e)
             {
@@ -210,8 +215,8 @@ namespace EllieApi.Controllers
                     LoginSuccessUserDto login = new LoginSuccessUserDto();
                     login.id = userByEmail.Id;
                     login.email = userByEmail.Email;
-                    login.userType1 = userByEmail.Role.Name;
-                    string token = CreateToken(user.email, userByEmail.Role.Name);
+                    login.userType1 = "Internal";
+                    string token = CreateToken(user.email, "Internal");
                     var obj = new { login, token };
                     return Ok(obj);
                 }
