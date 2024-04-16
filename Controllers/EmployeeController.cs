@@ -204,7 +204,9 @@ namespace EllieApi.Controllers
                 try
                 {
                     userByEmail = await _context.Employees.Where(c => c.Email == user.email)
-                    .FirstOrDefaultAsync();
+                        .Include(b => b.Role)
+                        .Include(e => e.Role.Name)
+                        .FirstOrDefaultAsync();
                 }
                 catch (Exception e)
                 {
