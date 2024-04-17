@@ -254,10 +254,15 @@ namespace EllieApi.Controllers
                 loginSuccess = await CheckIfRoomExists(user.RoomId, user.InstituteId);
                 if (loginSuccess)
                 {
+                    Room room = await _context.Rooms.Where(c => c.Id == user.RoomId)
+                                    .Include(b => b.Institute)
+                                    .FirstOrDefaultAsync();
                     AppLoginDto login = new AppLoginDto();
                     login.RoomId = user.RoomId;
                     login.InstituteId = user.InstituteId;
-                    var obj = new { login };
+                    login.RoomName = room.Name;
+                    string token = CreateToken(room.Name, "Beboer");
+                    var obj = new { login, token };
                     return Ok(obj);
                 }
             }
