@@ -25,7 +25,7 @@ namespace EllieApi.Controllers
         [HttpGet, Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Users.ToListAsync());
+            return Ok(await _context.Users.Include(e => e.Notes).ToListAsync());
         }
 
         [HttpGet("id")]

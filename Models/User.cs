@@ -26,7 +26,6 @@ public partial class User
     [JsonIgnore]
 
     public virtual Employee? ContactPerson { get; set; } = null!;
-    [JsonIgnore]
 
     public virtual ICollection<Note>? Notes { get; set; } = new List<Note>();
     [JsonIgnore]
