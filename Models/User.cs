@@ -23,7 +23,6 @@ public partial class User
     [JsonIgnore]
 
     public DateTime? LastEdited { get; set; }
-    [JsonIgnore]
 
     public virtual Employee? ContactPerson { get; set; } = null!;
     [JsonIgnore]
