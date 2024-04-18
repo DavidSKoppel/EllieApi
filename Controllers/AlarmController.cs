@@ -48,7 +48,7 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Alarm alarm)
+        public async Task<IActionResult> Create(Alarm alarm, int[] userIds, bool isAllUsersChecked)
         {
             if (ModelState.IsValid)
             {

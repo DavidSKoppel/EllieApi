@@ -28,7 +28,6 @@ public partial class Alarm
     [JsonIgnore]
 
     public virtual AlarmType? AlarmType { get; set; } = null!;
-    [JsonIgnore]
 
     public virtual ICollection<UserAlarmRelation>? UserAlarmRelations { get; set; } = new List<UserAlarmRelation>();
 }
