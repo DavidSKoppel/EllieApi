@@ -25,7 +25,6 @@ public partial class User
     public DateTime? LastEdited { get; set; }
 
     public virtual Employee? ContactPerson { get; set; } = null!;
-    [JsonIgnore]
 
     public virtual ICollection<Note>? Notes { get; set; } = new List<Note>();
     [JsonIgnore]

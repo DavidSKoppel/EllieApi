@@ -108,5 +108,19 @@ namespace EllieApi.Controllers
             await _context.SaveChangesAsync();
             return Ok(id);
         }
+
+        [HttpGet("GetNoteByUserId/id")]
+        public async Task<IActionResult> GetNoteByUserId(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var notesRelation = await _context.Notes
+                .Where(m => m.UserId == id).ToListAsync();
+
+            return Ok(notesRelation);
+        }
     }
 }

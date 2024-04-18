@@ -25,7 +25,7 @@ namespace EllieApi.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Users.Include(e => e.ContactPerson).ToListAsync());
+            return Ok(await _context.Users.Include(e => e.Notes).Include(a => a.ContactPerson).ToListAsync());
         }
 
         [HttpGet("id")]
