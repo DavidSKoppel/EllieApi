@@ -228,49 +228,5 @@ namespace EllieApi.Controllers
             }
             return StatusCode(418, "is Bed");
         }
-
-        private async Task<bool> CheckIfRoomExists(int roomId, int instituteId)
-        {
-            Room room = await _context.Rooms.Where(c => c.Id == roomId)
-                        .Include(b => b.Institute)
-                        .FirstOrDefaultAsync();
-
-            if (room != null)
-            {
-                if (room.Institute.Id == instituteId)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        [HttpPost("AppUserLogin")]
-        public async Task<IActionResult> LoginApp(AppLoginDto user)
-        {
-            bool loginSuccess;
-            try
-            {
-                loginSuccess = await CheckIfRoomExists(user.RoomId, user.InstituteId);
-                if (loginSuccess)
-                {
-                    Room room = await _context.Rooms.Where(c => c.Id == user.RoomId)
-                                    .Include(b => b.Institute)
-                                    .FirstOrDefaultAsync();
-                    AppLoginDto login = new AppLoginDto();
-                    login.RoomId = user.RoomId;
-                    login.InstituteId = user.InstituteId;
-                    login.RoomName = room.Name;
-                    string token = CreateToken(room.Name, "Beboer");
-                    var obj = new { login, token };
-                    return Ok(obj);
-                }
-            }
-            catch (Exception e)
-            {
-                return StatusCode(404, "RoomId or PasswordId is wrong");
-            }
-            return StatusCode(418, "is Bed");
-        }
     }
 }

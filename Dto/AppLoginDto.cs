@@ -2,8 +2,13 @@
 {
     public class AppLoginDto
     {
-        public string? RoomName { get; set; }
-        public int InstituteId { get; set; }
-        public int RoomId { get; set; }
+        public int Id { get; set; }
+
+        public string FirstName { get; set; } = null!;
+
+        public string LastName { get; set; } = null!;
+
+        public int? Points { get; set; }
+        public string Token { get; set; }
     }
 }

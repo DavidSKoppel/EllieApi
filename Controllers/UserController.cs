@@ -1,11 +1,16 @@
-﻿using EllieApi.Models;
+﻿using EllieApi.Dto;
+using EllieApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace EllieApi.Controllers
@@ -15,10 +20,40 @@ namespace EllieApi.Controllers
     public class UserController : GenericController
     {
         private readonly ElliedbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public UserController(ElliedbContext context)
+        public UserController(ElliedbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+        }
+
+        [HttpPost("AppUserLogin")]
+        public async Task<IActionResult> LoginApp(int roomId, int instituteId)
+        {
+            bool loginSuccess;
+            try
+            {
+                loginSuccess = await CheckIfRoomExists(roomId, instituteId);
+                if (loginSuccess)
+                {
+                    var userId = _context.Rooms.FirstOrDefaultAsync(c => c.Id == roomId).Result.UserId;
+                    User user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                    AppLoginDto userData = new AppLoginDto();
+                    userData.FirstName = user.FirstName; 
+                    userData.LastName = user.LastName;
+                    userData.Points = user.Points;
+                    userData.Id = user.Id;
+                    string token = CreateToken(userData.FirstName, "Beboer");
+                    userData.Token = token;
+                    return Ok(userData);
+                }
+            }
+            catch (Exception e)
+            {
+                return StatusCode(404, "RoomId or PasswordId is wrong");
+            }
+            return StatusCode(418, "is Bed");
         }
 
         // GET: User
@@ -108,6 +143,43 @@ namespace EllieApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(id);
+        }
+
+        private string CreateToken(string email, string userType)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, email),
+                new Claim(ClaimTypes.Role, userType)
+            };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(100),
+                signingCredentials: cred);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+        }
+
+        private async Task<bool> CheckIfRoomExists(int roomId, int instituteId)
+        {
+            Room room = await _context.Rooms.Where(c => c.Id == roomId)
+                        .Include(b => b.Institute)
+                        .FirstOrDefaultAsync();
+
+            if (room != null)
+            {
+                if (room.Institute.Id == instituteId)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
