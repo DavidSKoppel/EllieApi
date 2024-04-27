@@ -45,7 +45,42 @@ namespace EllieApi.Controllers
 
             return Ok(alarms);
         }
-        
+
+        [HttpGet("GetPillAlarmsByUserId/id")]
+        // GET: UserAlarmRelation/Details/5
+        public async Task<IActionResult> GetPillAlarmsByUserId(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            /*var UserAlarmRelation = await _context.UserAlarmRelations
+                .Where(m => m.UserId == id).Include(a => a.Alarms).ToListAsync();*/
+            var UserAlarmRelation = await _context.UserAlarmRelations
+                .Where(m => m.UserId == id).ToListAsync();
+            List<Alarm> alarms = new List<Alarm>();
+            foreach (var userAlarmRelation in UserAlarmRelation)
+            {
+                alarms.Add(await _context.Alarms.Where(a => a.Id == userAlarmRelation.AlarmsId).FirstOrDefaultAsync());
+            }
+            List<Alarm> pillAlarms = new List<Alarm>();
+            foreach (var alarm in alarms)
+            {
+                if(alarm.Name == "Pills") 
+                {
+                    pillAlarms.Add(alarm);
+                }
+            }
+
+            if (UserAlarmRelation == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(pillAlarms);
+        }
+
         // GET: UserAlarmRelation
         [HttpGet]
         public async Task<IActionResult> Index()

@@ -29,12 +29,12 @@ namespace EllieApi.Controllers
         }
 
         [HttpPost("AppUserLogin")]
-        public async Task<IActionResult> LoginApp(int roomId, int instituteId)
+        public async Task<IActionResult> LoginApp(int roomId)
         {
             bool loginSuccess;
             try
             {
-                loginSuccess = await CheckIfRoomExists(roomId, instituteId);
+                loginSuccess = await CheckIfRoomHasUser(roomId);
                 if (loginSuccess)
                 {
                     var userId = _context.Rooms.FirstOrDefaultAsync(c => c.Id == roomId).Result.UserId;
@@ -47,11 +47,14 @@ namespace EllieApi.Controllers
                     string token = CreateToken(userData.FirstName, "Beboer");
                     userData.Token = token;
                     return Ok(userData);
+                } else
+                {
+                    return StatusCode(404, "No user found in room");
                 }
             }
             catch (Exception e)
             {
-                return StatusCode(404, "RoomId or PasswordId is wrong");
+                return StatusCode(500, "Something went wrong");
             }
             return StatusCode(418, "is Bed");
         }
@@ -60,7 +63,7 @@ namespace EllieApi.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Users.Include(e => e.Notes).Include(a => a.ContactPerson).ToListAsync());
+            return Ok(await _context.Users.Include(e => e.Notes).Include(a => a.ContactPerson).Include(e => e.Rooms).ToListAsync());
         }
 
         [HttpGet("id")]
@@ -82,7 +85,7 @@ namespace EllieApi.Controllers
             return Ok(User);
         }
 
-        [HttpPost]
+        [HttpPost, Authorize(Roles = "Admin, Pædagog")]
         public async Task<IActionResult> Create(User User)
         {
             if (ModelState.IsValid)
@@ -93,7 +96,7 @@ namespace EllieApi.Controllers
             return StatusCode(201, User);
         }
 
-        [HttpPut]
+        [HttpPut, Authorize]
         public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
             User User = await _context.Users.FindAsync(id);
@@ -166,15 +169,13 @@ namespace EllieApi.Controllers
             return jwt;
         }
 
-        private async Task<bool> CheckIfRoomExists(int roomId, int instituteId)
+        private async Task<bool> CheckIfRoomHasUser(int roomId)
         {
-            Room room = await _context.Rooms.Where(c => c.Id == roomId)
-                        .Include(b => b.Institute)
-                        .FirstOrDefaultAsync();
+            Room room = await _context.Rooms.Where(c => c.Id == roomId).FirstOrDefaultAsync();
 
             if (room != null)
             {
-                if (room.Institute.Id == instituteId)
+                if(room.UserId != null)
                 {
                     return true;
                 }

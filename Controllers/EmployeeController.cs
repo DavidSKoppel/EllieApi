@@ -30,10 +30,10 @@ namespace EllieApi.Controllers
         }
 
         // GET: Employee
-        [HttpGet, Authorize(Roles = "Administrator")]
+        [HttpGet, Authorize]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Employees.Include(b => b.Institute).Include(e => e.Institute.Address).ToListAsync());
+            return Ok(await _context.Employees.Include(b => b.Institute).Include(e => e.Institute.Address).Where(e => e.Email != "Admin@admin.dk").ToListAsync());
         }
 
         [HttpGet("id")]

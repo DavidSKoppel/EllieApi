@@ -19,7 +19,19 @@ namespace EllieApi.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Rooms.ToListAsync());
+            return Ok(await _context.Rooms.Where(e => e.UserId == null).ToListAsync());
+        }
+
+        [HttpGet("WithNoUsers")]
+        public async Task<IActionResult> WithNoUsers()
+        {
+            return Ok(await _context.Rooms.Where(e => e.UserId == null).ToListAsync());
+        }
+
+        [HttpGet("byinstid")]
+        public async Task<IActionResult> ByInstId(int id)
+        {
+            return Ok(await _context.Rooms.Where(e => e.InstituteId == id).ToListAsync());
         }
 
         [HttpGet("id")]

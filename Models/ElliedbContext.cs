@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using EllieApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EllieApi.Models;
@@ -25,6 +26,8 @@ public partial class ElliedbContext : DbContext
 
     public virtual DbSet<Institute> Institutes { get; set; }
 
+    public virtual DbSet<Log> Logs { get; set; }
+
     public virtual DbSet<Note> Notes { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -45,6 +48,8 @@ public partial class ElliedbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Addresse__3214EC077D44F74E");
 
+            entity.ToTable(tb => tb.HasTrigger("TAddressesLastEdited"));
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -56,6 +61,12 @@ public partial class ElliedbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Alarms__3214EC0760808E56");
 
+            entity.ToTable(tb =>
+                {
+                    tb.HasTrigger("TAlarmLastEdited");
+                    tb.HasTrigger("TLogsAlarms");
+                });
+
             entity.Property(e => e.ActivatingTime).HasColumnType("datetime");
             entity.Property(e => e.AlarmTypeId).HasColumnName("AlarmType_id");
             entity.Property(e => e.CreatedAt)
@@ -64,7 +75,7 @@ public partial class ElliedbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.ImageUrl).HasMaxLength(255);
             entity.Property(e => e.LastEdited).HasColumnType("datetime");
-            entity.Property(e => e.Name).HasMaxLength(10);
+            entity.Property(e => e.Name).HasMaxLength(255);
 
             entity.HasOne(d => d.AlarmType).WithMany(p => p.Alarms)
                 .HasForeignKey(d => d.AlarmTypeId)
@@ -76,7 +87,7 @@ public partial class ElliedbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__AlarmTyp__3214EC071E468A4B");
 
-            entity.ToTable("AlarmType");
+            entity.ToTable("AlarmType", tb => tb.HasTrigger("TAlarmTypesLastEdited"));
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -88,6 +99,12 @@ public partial class ElliedbContext : DbContext
         modelBuilder.Entity<Employee>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC077083A692");
+
+            entity.ToTable(tb =>
+                {
+                    tb.HasTrigger("TLogsEmployee");
+                    tb.HasTrigger("TLogsEmployees");
+                });
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -129,9 +146,21 @@ public partial class ElliedbContext : DbContext
                 .HasConstraintName("FK_Institutes.Address_id");
         });
 
+        modelBuilder.Entity<Log>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Logs__3214EC07B3B38990");
+
+            entity.Property(e => e.TableName).HasMaxLength(255);
+            entity.Property(e => e.TimeEdited)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
         modelBuilder.Entity<Note>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Notes__3214EC076EB2DD32");
+
+            entity.ToTable(tb => tb.HasTrigger("TNotesLastEdited"));
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -152,7 +181,7 @@ public partial class ElliedbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Role__3214EC07E97E51B6");
 
-            entity.ToTable("Role");
+            entity.ToTable("Role", tb => tb.HasTrigger("TRolesLastEdited"));
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -165,7 +194,7 @@ public partial class ElliedbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Room__3214EC0754754A15");
 
-            entity.ToTable("Room");
+            entity.ToTable("Room", tb => tb.HasTrigger("TRoomsLastEdited"));
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -189,13 +218,19 @@ public partial class ElliedbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Users__3214EC075498799F");
 
+            entity.ToTable(tb =>
+                {
+                    tb.HasTrigger("TLogsUser");
+                    tb.HasTrigger("TUsersLastEdited");
+                });
+
             entity.Property(e => e.ContactPersonId).HasColumnName("ContactPerson_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.FirstName).HasMaxLength(10);
+            entity.Property(e => e.FirstName).HasMaxLength(255);
             entity.Property(e => e.LastEdited).HasColumnType("datetime");
-            entity.Property(e => e.LastName).HasMaxLength(20);
+            entity.Property(e => e.LastName).HasMaxLength(255);
             entity.Property(e => e.Points).HasDefaultValueSql("('0')");
 
             entity.HasOne(d => d.ContactPerson).WithMany(p => p.Users)
@@ -207,6 +242,8 @@ public partial class ElliedbContext : DbContext
         modelBuilder.Entity<UserAlarmRelation>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__UserAlar__3214EC0754C0614E");
+
+            entity.ToTable(tb => tb.HasTrigger("TUserAlarmRelationsLastEdited"));
 
             entity.Property(e => e.AlarmsId).HasColumnName("Alarms_id");
             entity.Property(e => e.CreatedAt)

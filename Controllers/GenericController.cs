@@ -2,7 +2,7 @@
 
 namespace EllieApi.Controllers
 {
-    public class GenericController : Controller
+    public abstract class GenericController : Controller
     {
         public static object ChangeType(object value, Type conversion)
         {

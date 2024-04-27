@@ -118,7 +118,7 @@ namespace EllieApi.Controllers
             }
 
             var notesRelation = await _context.Notes
-                .Where(m => m.UserId == id).ToListAsync();
+                .Where(m => m.UserId == id).OrderByDescending(a => a.Id).ToListAsync();
 
             return Ok(notesRelation);
         }
