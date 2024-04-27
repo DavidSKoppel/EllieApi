@@ -1,4 +1,5 @@
 ﻿using EllieApi.Models;
+using EllieApi.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -14,31 +15,30 @@ namespace EllieApi.Controllers
     [Route("[controller]")]
     public class AddressController : GenericController
     {
-        private readonly ElliedbContext _context;
+        private IAddressRepository _repository;
 
-        public AddressController(ElliedbContext context)
+        public AddressController(IAddressRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         // GET: Address
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return Ok(await _context.Addresses.ToListAsync());
+            return Ok(await _repository.GetAllAsync());
         }
 
         [HttpGet("id")]
         // GET: Address/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var Address = await _context.Addresses
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var Address = await _repository.GetById(id);
             if (Address == null)
             {
                 return NotFound();
@@ -52,8 +52,7 @@ namespace EllieApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(Address);
-                await _context.SaveChangesAsync();
+                _repository.Insert(Address);
             }
             return StatusCode(201, Address);
         }
@@ -61,52 +60,24 @@ namespace EllieApi.Controllers
         [HttpPut]
         public async Task<IActionResult> Edit(int id, [FromBody] Dictionary<string, object> updates)
         {
-            Address Address = await _context.Addresses.FindAsync(id);
-
-            if (Address == null)
+            if (!_repository.entityExists(id).Result)
             {
                 return NotFound();
             }
-
-            foreach (var update in updates)
-            {
-                var field = Address.GetType().GetProperties().FirstOrDefault(p => p.Name.Equals(update.Key, StringComparison.OrdinalIgnoreCase));
-                if (field != null && field.CanWrite)
-                {
-                    if (update.Value == null)
-                    {
-                        field.SetValue(Address, null);
-                    }
-                    else
-                    {
-                        field.SetValue(Address, ChangeType(update.Value.ToString(), field.PropertyType));
-                    }
-                }
-            }
-
-            _context.Entry(Address).State = EntityState.Modified;
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                return NotFound();
-            }
-            return Ok(Address);
+            await _repository.Update(id, updates);
+            
+            return Ok(updates);
         }
 
         // POST: Address/Delete/5
         [HttpDelete]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var Address = await _context.Addresses.FindAsync(id);
-            if (Address != null)
+            if (!_repository.entityExists(id).Result)
             {
-                _context.Addresses.Remove(Address);
+                return NotFound();
             }
-
-            await _context.SaveChangesAsync();
+            await _repository.Delete(id);
             return Ok(id);
         }
     }

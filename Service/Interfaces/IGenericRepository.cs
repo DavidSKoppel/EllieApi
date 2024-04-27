@@ -6,7 +6,7 @@
         Task<T> GetById(int id);
         Task<bool> entityExists(int id);
         Task Insert(T obj);
-        Task Update(T obj);
+        Task Update(int id, Dictionary<string, object> updates);
         Task Delete(int id);
         Task Save();
     }
